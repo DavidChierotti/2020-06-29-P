@@ -6,7 +6,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
+import it.polito.tdp.PremierLeague.model.Adiacenza;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
 
@@ -78,6 +81,71 @@ public class PremierLeagueDAO {
 				
 				
 				result.add(match);
+
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
+	public List<Match> getVertici(Map<Integer,Match> partite,int m){
+		String sql = "SELECT MatchID "
+				+ "FROM matches m "
+				+ "WHERE MONTH(m.Date)=?";
+		List<Match> result = new ArrayList<Match>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, m);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				
+				
+				
+				result.add(partite.get(res.getInt("MatchID")));
+
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public List<Adiacenza> getArchi(Map<Integer,Match> partite,int m,int n){
+		String sql = "SELECT t1.MatchID AS m1,t2.MatchID AS m2, COUNT(*) AS peso "
+				+ "FROM "
+				+ "(SELECT m.MatchID, a.PlayerID "
+				+ "FROM matches m, actions a "
+				+ "WHERE m.MatchID=a.MatchID AND a.TimePlayed>=? AND MONTH(m.Date)=?) t1, "
+				+ "(SELECT m.MatchID, a.PlayerID "
+				+ "FROM matches m, actions a "
+				+ "WHERE m.MatchID=a.MatchID AND a.TimePlayed>=? AND MONTH(m.Date)=?) t2 "
+				+ "WHERE t1.MatchID<t2.MatchID AND t1.PlayerId=t2.PlayerId "
+				+ "GROUP BY t1.MatchID,t2.MatchID";
+		List<Adiacenza> result = new ArrayList<Adiacenza>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, n);
+			st.setInt(2, m);
+			st.setInt(3, n);
+			st.setInt(4, m);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+                Adiacenza a=new Adiacenza(partite.get(res.getInt("m1")),partite.get(res.getInt("m2")),res.getDouble("peso"));
+				result.add(a);
+			
 
 			}
 			conn.close();

@@ -9,6 +9,7 @@ public class Match {
 	Integer teamHomeFormation;
 	Integer teamAwayFormation;
 	Integer resultOfTeamHome;
+	String identificativo;
 	
 	String teamHomeNAME;
 	String teamAwayNAME;
